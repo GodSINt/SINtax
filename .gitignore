@@ -1,0 +1,5 @@
+# compiled output
+sin/sin
+*.db
+
+.DS_Store

@@ -1,0 +1,266 @@
+
+###////////////////////////////////////////////////////////////////////////
+// Create a database
+///////////////////////////////////////////////////////////////////////////
+// create columns
+///////////////////////////////////////////////////////////////////////###
+create column (c1) "name: id | type: integer | args: pk; ai"
+create column (c2) "name: username | type: varchar | args: uq; nn"
+create column (c3) "name: title | type: text | args: nn | default: guest"
+create column (c4) "name: salt | type: blob "
+create column (c5) "name: handshake | type: blob"
+
+###///////////////////////////////////////////////////////
+// connect to the database
+///////////////////////////////////////////////////////###
+connect database "sss.db"
+
+###///////////////////////////////////////////////////////
+// seed the columns into a table
+///////////////////////////////////////////////////////###
+create table (sinners) "{c1} | {c2} | {c3} | {c4}| {c5}"
+
+###//////////////////////////////////////////////////////
+// Close the connection
+//////////////////////////////////////////////////////###
+close database
+
+
+###//////////////////////////
+// create the user object
+//////////////////////////###
+create object (sinner) "username: unknown | title: guest | accepted: false | masterkey: none"
+
+create clock (now) "mode: normal | zone: local"
+
+###///////////////////////////////////////////////
+// Create Windows
+//////////////////////////////////////////////////
+// 1. Landing Window
+///////////////////////////////////////////////###
+create window (landing) "text: SIN Nation SINner's Society | size: 1000x800 | grid: 15x20 | bgimage: secret_door.jpg"
+create image (secret_login) "image: icon.png | action: do {go_log_two}"
+
+nest {secret_login} "parent: {landing} | span: 6,9; 9,12"
+show window {landing}
+
+
+###////////////////////////////
+// The invitation
+///////////////////////////###
+create filepath (invite_file) "invite.txt"
+
+read {invite_file} into (invitation)
+
+create window (main_guest) "text: Welcome to SIN Nation | size: 800x600 | grid: 15x20 | bgcolor: #30303f | bgimage: guest_bg.jpg" 
+
+
+# --- Header ---
+create box (header) "bgimage: guest_header.jpg | grid: 16x80"
+create box (invite) "text: An Open Invitation| grid: 10x10 | bgcolor: #292576"
+create textbox (invite_label) "text: {invitation} | editable: no"
+create button (invite_link) "text: Discord | fontsize: 12 | bgcolor: #000000| url: https://discord.gg/H5k9UJ25Mn" 
+
+# --- main nest ---
+nest {header} "parent: {main_guest} | span: 1,1; 4,20"
+nest {invite} "parent: {main_guest} | span: 2,3; 14,18"
+nest {invite_label} "parent: {invite} | span: 2,1; 9,10"
+nest {invite_link} "parent: {invite} | span: 10,4; 10,6"
+
+###/////////////////////////////////////////
+// 2. Registration window
+/////////////////////////////////////////###
+create window (register) "text: Register To Login | size: 800x200 | grid: 30x40 | bgimage: icon.png"
+create box (reg_box) "grid: 10x20 | bgcolor: #2b2848 | rounded: 4,4 | pad: 10"
+create label (please_reg) "text: Register | fontsize: 18"
+create input (reg_user) "text: Username"
+create button (user_reg) "text: Register | bgcolor: #e9cf0f | action: do {user_reg}"
+create input (reg_pass) "text: password | hidden: yes"
+create link (log_link) "text: Login Here | action: do {go_log}"
+create label (or_lbl_two) "text: or {log_link} | fontsize: 12"
+
+
+nest {reg_box} "parent:{register} | span: 1,1; 30,40"
+nest {please_reg} "parent: {reg_box} | span: 2,9; 3,12"
+nest {reg_user} "parent: {reg_box} | span: 4,2; 5,16"
+nest {user_reg} "parent: {reg_box} | span: 5,18; 6,19"
+nest {reg_pass} "parent: {reg_box} | span:8,2; 9,16"
+nest {or_lbl_two} "parent: {reg_box} | span: 8,18; 9,20"
+
+###////////////////////////////////////////
+// 3. Login window
+////////////////////////////////////////###
+create window (login) "text: Login To SIN Nation | size: 800x200 | grid: 30x40 | bgimage: icon.png"
+create box (login_box) "grid: 10x20 | bgcolor: #2b2848 | rounded: 4,4 | pad: 10"
+create label (please_login) "text: Please Login | fontsize: 18"
+create input (log_user) "text: Username"
+create button (user_log) "text: Login | bgcolor: #e9cf0f | action: do {user_login}"
+create input (log_pass) "text: password | hidden: yes"
+create link (reg_link) "text: Register Here | action: do {go_reg}"
+create label (or_lbl_one) "text: or {reg_link} | fontsize: 12"
+
+nest {login_box} "parent: {login} | span: 1,1; 30,40"
+nest {please_login} "parent: {login_box} | span: 2,9; 3,12"
+nest {log_user} "parent: {login_box} | span: 4,2; 5,16"
+nest {user_log} "parent: {login_box} | span: 5,18; 6,19"
+nest {log_pass} "parent: {login_box} | span:8,2; 9,16"
+nest {or_lbl_one} "parent: {login_box} | span: 8,18; 9,20"
+
+
+###///////////////////////////////////////////////
+//  User Exists Window
+///////////////////////////////////////////////###
+create window (user_exists) "text: User Exists | size: 400x200 | grid: 7x13 | bgimage: user_exists.jpeg"
+create a button (exists_ok) "text:OK | bgcolor: #b9a50e | action: do {ok_exists}"
+
+nest {exists_ok} "parent: {user_exists} | span: 6,6; 6,8"
+
+###//////////////////////////////////////////////////
+//  Registration failed Window
+///////////////////////////////////////////////###
+create window (reg_fail) "text: Registration Failed | size: 400x200 | grid: 7x13 | bgimage: reg_fail.jpg"
+create a button (reg_fail_btn) "text:OK | bgcolor: #b9a50e | action: do {reg_fail_ok}"
+
+nest {reg_fail_btn} "parent: {reg_fail} | span: 6,6; 6,8"
+
+###//////////////////////////////////////////////////
+//  Registration success Window
+///////////////////////////////////////////////###
+create window (reg_success) "text: Registration Success | size: 400x200 | grid: 7x13 | bgimage: reg_success.jpg"
+create a button (reg_success_btn) "text:OK | bgcolor: #b9a50e | action: do {reg_success_ok}"
+
+nest {reg_success_btn} "parent: {reg_success} | span: 6,6; 6,8"
+
+###///////////////////////////////////
+// Wrong password window
+///////////////////////////////////###
+create window (pass_fail) "text: Wrong Password | size: 400x200 | grid: 7x13 | bgimage: wrong_pass.jpg"
+create a button (pass_fail_btn) "text:OK | bgcolor: #b9a50e | action: do {pass_fail_ok}"
+
+nest {pass_fail_btn} "parent: {pass_fail} | span: 6,6; 6,8"
+
+###///////////////////////////////////
+// Login Success window
+///////////////////////////////////###
+create window (login_good) "text: Welcome Home SINner | size: 400x200 | grid: 7x13 | bgimage: login_good.jpg"
+create a button (login_good_btn) "text:OK | bgcolor: #b9a50e | action: do {login_good_ok}"
+
+nest {login_good_btn} "parent: {login_good} | span: 6,6; 6,8"
+
+###//////////////////////////////////////
+// create button actions
+///////////////////////////////////////////////////////////
+// action on the links to switch bbetween login and register
+//////////////////////////////////////////////////////////###
+create action (go_reg)
+show window {register}
+destroy window {login}
+end action
+
+create action (go_log)
+show window {login}
+destroy window {register}
+end action
+
+###/////////////////////////////////////////////////////////////
+// action on the image to initiate the login from the landing
+/////////////////////////////////////////////////////////////###
+create action (go_log_two)
+show window {login}
+end action
+
+###////////////////////////////////////////////////////////////
+// actions for successful logins and registration as well as 
+// failures all popping small windows with ok buttons.
+///////////////////////////////////////////////////////////###
+create action (ok_exists)
+destroy window {user_exists}
+end action
+
+create action (reg_fail_ok)
+destroy window {reg_fail}
+show window {register}
+end action
+
+create action (reg_success_ok)
+destroy window {reg_success}
+destroy window {register}
+show window {login}
+end action
+
+create action (pass_fail_ok)
+destroy window {pass_fail}
+show window {login}
+end action
+
+create action (login_good_ok)
+show window {main_guest}
+destroy window {login_good}
+destroy window {landing}``àa11111`````111wewe
+end action
+
+
+###//////////////////////////////////
+// Registration action
+////////////////////////////////###
+create action (complete_reg)
+create random (salt) "type: bytes | length: 16"
+create masterkey (mk) "{reg_pass} | {salt}"
+create handshake (hs) "{salt} | {mk}"
+connect database "sss.db"
+insert into table {sinners} "username: {reg_user} | title: guest | salt: {salt} | handshake: {hs}"
+search table {sinners} "username: {reg_user}" into (reg_check)
+if {reg_check} has "{reg_user}" 
+show window {reg_success}
+else
+show window {reg_fail}
+destroy window {register}
+end action
+
+create action (user_reg)
+connect database "sss.db"
+search table {sinners} "username: {reg_user}" into (prereg_results)
+close database
+if {prereg_results} has {reg_user}
+show window {user_exists}
+destroy window {register}
+else
+do {complete_reg}
+end action
+
+###//////////////////////////////////////////////
+// Login actions
+////////////////////////////////////////////////###
+create action (user_login)
+connect database "sss.db"
+search table {sinners} "username: {log_user}" into (prelog_results)
+close database
+if {prelog_results} has {log_user}
+do {complete_login}
+else
+do {go_reg}
+end action
+
+create action (complete_login) 
+create masterkey (mk) "{log_pass} | {prelog_results.salt}"
+create handshake (loghs) "{prelog_results.salt} | {mk}"
+if {prelog_results.handshake} = {loghs}
+set {sinner.username.title.accepted.masterkey} "{log_user} | {prelog_results.title} | true | {mk}"
+show window {login_good}
+destroy window {login}
+else
+show window {pass_fail}
+destroy window {login}
+destroy window {landing}
+end action
+
+
+
+###/////////////////////////////////////////////////////////////////////////////////////////
+// This gives you a complete and secure login and a blank slate to gate your program into...
+// The rest is up to you my friend. I spent many hours building this for you...
+// There are many directions to take it from here and I will have some examples sitting right beside this script.
+//
+//                                            Welcome to the SIN Nation.
+//                                                   ~ GodSINt ~
+//////////////////////////////////////////////////////////////////////////////////////////###
