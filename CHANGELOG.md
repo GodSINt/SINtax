@@ -8,7 +8,28 @@ have, that build predates it.
 
 ---
 
-## 3 November 2026 — current
+## 4 November 2026 — current
+
+### The compiler
+
+- **`bytes` writes as well as reads.** `bytes {ids} to "tone.wav"` takes a
+  tensor of numbers and writes one byte each, so a program can put binary back
+  on disk. There was a door in and no door out: `write` carries text, and a C
+  string stops at the first zero byte — which is most of a WAV header and all of
+  a stretch of silence. A file read with `map` and turned into numbers by
+  `bytes` now comes back out byte for byte.
+- A number outside 0..255 is rounded and held at the edge rather than wrapping,
+  the same way `text` holds it. The path reads braces, so takes can number
+  themselves: `bytes {ids} to "take_{n}.wav"`.
+
+### The reference
+
+- `COMMANDS.md` documents the outlet under *Text and bytes*, with the arithmetic
+  for taking a 16-bit sample apart and putting it back.
+
+---
+
+## 3 November 2026
 
 ### The compiler
 

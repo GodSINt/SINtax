@@ -841,6 +841,7 @@ is about three hours instead of about twenty.
 
 ```
 bytes {text} into (ids)             # text -> numbers
+bytes {ids} to "tone.wav"           # numbers -> the bytes of a file
 text {ids} into (back)              # numbers -> text
 before {ids} into (all_but_last)
 after {ids} into (all_but_first)
@@ -870,6 +871,52 @@ Interpolation is the same everywhere: `print`, `set`, `write`, `bytes`,
 attributes, `snprintf`, and a value being created. A name in braces becomes its
 value; `'{name}'` keeps the braces; and a brace that names nothing stays exactly
 as typed.
+
+**The way back out.** `bytes` reads in both directions, told apart by where the
+other end is: `into (ids)` names a tensor to fill, `to "path"` names a file to
+write.
+
+```
+map "tone.wav" into (page)
+bytes {page} into (ids)             # every byte of the file, 0..255
+bytes {ids} to "copy.wav"           # and every one of them back out
+```
+
+That pair is byte-exact: the copy comes out the same size as the original and
+`cmp` finds no difference. It has to be `bytes` and not `write`, because `write`
+carries text and a C string stops at the first zero byte — which is most of a
+WAV header, and all of a stretch of silence. `text {ids}` has the same limit; use
+it for words, `bytes ... to` for everything else.
+
+A byte is 0..255, so each number is rounded and held inside that range — a
+sample that ran past the edge lands at the edge rather than wrapping into a
+click. The path reads braces like any other value, so takes can number
+themselves:
+
+```
+create variable (take) "t1"
+
+# ... change the numbers in (ids) ...
+bytes {ids} to "take_{take}.wav"
+```
+
+Sixteen-bit samples are two bytes each, little end first, and the language has
+the arithmetic to take them apart and put them back:
+
+```
+take {ids}[0, {off}] into (lo)
+add {off} and 1 into (next)
+take {ids}[0, {next}] into (hi)
+multiply {hi} and 256 into (high)
+add {lo} and {high} into (v)        # a sample, offset by 65536
+if {v} > 32767
+    subtract {v} and 65536 into (v) # ... and now it is signed
+end if
+```
+
+Putting one back is `remainder {v} and 256` for the low byte and `quotient {v}
+and 256` for the high, with `add {v} and 65536` first when it is negative.
+`examples/` has no audio program yet; this is the shape one takes.
 
 **Two things that bite, learned the hard way:**
 
