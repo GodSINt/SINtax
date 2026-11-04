@@ -196,7 +196,7 @@ end action
 create action (login_good_ok)
 show window {main_guest}
 destroy window {login_good}
-destroy window {landing}``àa11111`````111wewe
+destroy window {landing}
 end action
 
 
@@ -245,7 +245,7 @@ create action (complete_login)
 create masterkey (mk) "{log_pass} | {prelog_results.salt}"
 create handshake (loghs) "{prelog_results.salt} | {mk}"
 if {prelog_results.handshake} = {loghs}
-set {sinner.username.title.accepted.masterkey} "{log_user} | {prelog_results.title} | true | {mk}"
+set {sinner.username.title.accepted} "{log_user} | {prelog_results.title} | true"
 show window {login_good}
 destroy window {login}
 else

@@ -52,16 +52,26 @@ create (n) holding 7            # NO -- bare numbers do not compile
 create (price) holding 99.9     # NO
 ```
 
-**Creation does not interpolate.** A reference inside a value is stored as
-literal text:
+**Every value interpolates.** A name in braces is what that name holds, whoever
+is holding the value — `print`, `set`, `write`, an attribute, or a creation:
 
 ```
 create (g) holding "hi"
-create (copy) holding "{g}"     # copy holds the literal text {g}
-set {copy} "{g}"                # now copy holds hi
+create (copy) holding "{g}"     # copy holds hi
+print "g is {g}"                # prints: g is hi
 ```
 
-`print` and `set` do interpolate: `print "g is {g}"` prints `g is hi`.
+**Braces you want kept are escaped with apostrophes.** `'{g}'` is the word
+`{g}`, not the value of `g`:
+
+```
+create (template) holding "'{g}'"    # template holds {g}
+set {template} "'{g}'"               # still {g}
+```
+
+A brace that names nothing is left exactly as typed, which is why JSON, CSS
+and HTML pass through a value untouched: `body { color: red }` keeps its braces
+and `{"a": 1}` keeps its own.
 
 ### True and false
 
@@ -235,6 +245,25 @@ break        # break · exit · stop
 continue     # continue · skip · next
 ```
 
+**A name made inside a loop is still there afterwards.** The braces of a loop do
+not decide how long a name lives; the program does. `create variable (k)`,
+`create matrix (m)`, `create list (l)` and anything an `into (name)` introduces
+are declared at the top of the function that wrote them, and the line inside the
+loop only fills them in:
+
+```
+repeat 200 times as (i)
+    create matrix (batch) {width} by {width}
+    fill {batch} with random normal 0.08 7
+end repeat
+print {batch}[0, 0]      # the matrix the last pass made
+```
+
+The value itself is made again on every pass, so what the name holds afterwards
+is whatever the last pass left there. A name a loop only sometimes reaches keeps
+the value from the pass that did reach it. The same holds inside an `if`: a name
+made in a branch is still the program's name after `end if`.
+
 ---
 
 ## 5. Actions, calls
@@ -313,7 +342,20 @@ nest {header} "parent: {main} | span: 1,1; 4,20"
 nest {title} "parent: {header} | span: 2,1; 2,8"
 ```
 
-`span` is `start_row, start_col; row_count, col_count` on the window's `grid`.
+`span` is `start_row, start_col; row_count, col_count` on the grid of whatever
+holds the element.
+
+A box given a `grid:` of its own is a page inside the page, and its children
+count from 1 again:
+
+```
+create box (talk_box) "grid: 10x10 | bgcolor: #332f44"
+nest {prompt} "parent: {talk_box} | span: 10,1; 10,8"   # its bottom row
+```
+
+A box given no grid is a window onto the grid it sits in, so `span: 8,1; 9,6`
+inside it means the same rows and columns it means on the window — the panel is
+where the page says it is, not a page of its own.
 
 **Words:** `nest` · `mount` · `reparent` · `house`
 
@@ -490,6 +532,70 @@ print "you said {you}"
 ```
 
 **Words:** `input` · `prompt` · `ask` for the name; `listen` · `hear` to fill it.
+
+A field holds text like anything else, so `slice` reads what is typed in it
+and `length {you} into (n)` is how many characters are in it right now.
+
+**Slice** — a piece of text cut into a list, one item per piece:
+
+```
+create variable (doc) "The cat sat on the mat. A dog ran fast."
+slice sentences {doc} (sents)
+for each (s) in {sents}
+    print {s}
+end for
+```
+
+What is read comes from a named value in braces. Where it goes is `(name)`
+and the list is made for you, or `{name}` and it must already be a list:
+
+```
+create list (words_list) ""
+slice words {doc} into {words_list}
+```
+
+Calling a name replaces what it held — a slice does not add to an old list.
+
+What is read is any name the language can resolve: a word, a field of an
+object, a file mapped into memory, or an element's live text. An input gives
+what is in it at that moment — inside an action as much as outside one:
+
+```
+create window (main) "text: NTM | size: 900x600 | grid: 16x20"
+create input (prompt) "text: Speak Here"
+nest {prompt} "parent: {main} | span: 10,1; 10,8"
+
+create function (chop)
+    slice words {prompt} into (words)      # what is typed, right now
+    length {words} into (n)
+    print {n}
+end function
+```
+
+A window is not text: `slice words {main} (w)` says so instead of building
+a program that fails at its first line. Slice `{main.title}` when the title
+is the text you want.
+
+| what you write | each item is |
+|---|---|
+| `slice {doc} (x)` or `slice lines {doc} (x)` | one line |
+| `slice sentences {doc} (x)` | one sentence, ending included |
+| `slice words {doc} (x)` | one word — and punctuation on its own, `...` kept whole |
+| `slice characters {doc} (x)` | one character; `\r` and `\n` are dropped |
+| `slice pos {doc} (x)` or `slice tags {doc} (x)` | `word\|tag`, e.g. `the\|det`, `cat\|n`, `mat\|?` |
+| `slice svo {doc} (x)` or `slice triples {doc} (x)` | `(subject, verb, object)`, e.g. `(cat, sat, on the mat)` |
+| `slice type {doc} (x)` or `slice mood {doc} (x)` | `declarative`, `interrogative`, `exclamatory`, `imperative`, `fragment` |
+
+Measured on `"The cat sat on the mat. A dog ran fast."`: 1 line, 2
+sentences, 12 items as words (10 words and 2 full stops), 39 characters,
+10 tags, 2 triples, 2 types.
+
+> The mode is chosen by the word between `slice` and `{`. Any word it does
+> not recognise means **lines**, so `slice {doc} (x)` and `slice sense {doc}
+> (x)` both give lines. Tags and triples assume English word order and lean
+> on `lexicon.txt`; a word it has never seen comes back tagged `?`.
+
+**Words:** `slice` · `split` · `chunk`
 
 ---
 
@@ -681,7 +787,7 @@ scale {a} by 3 into (e)
 matmul {m} and {n} into (p)
 dot {v} and {w} into (n)
 transpose {a} into (at)
-halve {a} at 2 into (l) and (r)
+halve {a} at 2 into (l) and (r)     # a column: a number or a {name}
 join {l} and {r} into (back)
 clip {a} between -30 and 30 into (c)
 norm {a} into (mag)
@@ -703,6 +809,34 @@ max {a} across into (peaks)         # also min, mean, argmax
 `concat` — `clip` · `clamp` — `norm` · `magnitude` — `scale` — `sample` ·
 `gamble`
 
+**Where a product runs.** A `matmul` above a few million multiply-adds is sent
+to the graphics card when the machine has one. Apple's GPUs have no double
+precision, so the product travels as float and comes back as double: the answer
+keeps about seven digits instead of sixteen, which a gradient does not notice
+and a run trained through it reaches the same place. Below that size the round
+trip through the card costs more than the arithmetic, so small products stay on
+the processor -- a 128 x 128 x 128 product is four million and stays put.
+
+```
+SINTAX_GPU=off    ./myprogram   # every product on the processor
+SINTAX_GPU=force  ./myprogram   # every product on the card, whatever its size
+SINTAX_GPU=on     ./myprogram   # the same as saying nothing: the sizes decide
+```
+
+Any value that is not `off`/`no`/`false`/`0`/`cpu` or `force`/`always` means the
+sizes decide.
+
+The first time a product actually goes over, one line on stderr names the card
+and the size where it starts. A program whose products are all small prints
+nothing and never wakes the card. Nothing about this is written in the source:
+`matmul` is the same word either way.
+
+Measured here on the transformer shipped in `examples/`, at dim 256 and
+context 128, one hundred training windows: **17.7 s on the processor, 3.0 s on
+the card** -- 177 ms a window against 30 ms. Both learn, and the loss descends
+the same way through both; the difference is that a pass over a 2.8 MB corpus
+is about three hours instead of about twenty.
+
 **Text and bytes:**
 
 ```
@@ -714,6 +848,59 @@ onehot {ids} and 256 into (x)
 flatten {x} into (row)
 sample {scores} down with heat 0.8 into (pick)
 ```
+
+`bytes` takes a quoted string, a text variable, or a mapped file, and a quoted
+string reads its braces like every other value does:
+
+```
+bytes "user: {prompt}" into (ids)          # the question, not the word
+bytes "'{prompt}'" into (ids)              # the braces, kept
+```
+
+Pieces can still be built separately and joined; `join` puts two streams side by
+side, and for a stream of byte numbers that is concatenation:
+
+```
+bytes "user: " into (lead)
+bytes {prompt} into (question)
+join {lead} and {question} into (seed)
+```
+
+Interpolation is the same everywhere: `print`, `set`, `write`, `bytes`,
+attributes, `snprintf`, and a value being created. A name in braces becomes its
+value; `'{name}'` keeps the braces; and a brace that names nothing stays exactly
+as typed.
+
+**Two things that bite, learned the hard way:**
+
+`halve` splits at whatever the column holds, written or named. `halve {q} at
+16` and `halve {q} at {half}` are the same instruction, so a width can be a
+dial: change `(half)` once and every split in the file follows. What it cannot
+take is arithmetic in the column — `at {dim} / 2` reports *halve needs a
+column* and skips the line — so keep a `(half)` beside your `(dim)` and set
+them together. A line that fails this way makes nothing, and the next line that
+uses its halves fails too.
+
+A tensor first made **inside** a `repeat` does not exist in the next `repeat`.
+Two loops that run the same forward pass therefore cannot both say `into
+(odds)` — the second one is a name the C compiler has never seen. Declare the
+working tensors once, above both loops, and both can use them:
+
+```
+create matrix (odds) 1 by 1         # a place to put it, shaped by the first op
+
+repeat 10 times as (i)
+    matmul {x} and {w} into (odds)
+end repeat
+
+repeat 300 times as (i)
+    matmul {x} and {w} into (odds)  # same name, and now it exists
+end repeat
+```
+
+`examples/transformer.stx` is a whole program built on this: two heads of
+causal self-attention, a feed-forward layer, attention written out of `matmul`,
+`exp`, `sum` and `divide`, and a mask built with nested `repeat` and `put`.
 
 ---
 
@@ -737,6 +924,37 @@ load {w} from "brain.txt"
 ```
 
 `loss … as cross entropy` selects cross entropy instead of squared error.
+
+**The path is a value too.** Both take a quoted path, and braces inside it are
+read the way braces are read everywhere else, so a program can keep its
+checkpoint wherever it likes:
+
+```
+create variable (brain) "examples/transformer.brain"
+save {w} to "{brain}"
+load {w} from "{brain}"
+```
+
+**One file, many tensors.** `save` reads what is already in the file, keeps
+every tensor it does not recognise, and writes the one you named back — so a
+model made of nine tensors is one checkpoint and nine lines, not nine files:
+
+```
+save {tok_emb} to "brain.txt"
+save {pos_emb} to "brain.txt"
+save {w_out} to "brain.txt"
+```
+
+`load` finds a tensor **by the name in the braces**, so those names are the keys
+in the file: `load {pos_emb} from "brain.txt"` looks for `pos_emb` and nothing
+else. Rename the variable and the tensor it used to be is invisible. A name with
+no match is reported — *holds no tensor named pos_emb* — and the tensor stays
+empty rather than stopping the program, so the mistake surfaces as a shape error
+on the next `matmul`.
+
+`examples/transformer.stx` writes such a checkpoint after training, and
+`examples/transformer_talk.stx` loads it and answers: about thirty seconds to
+train, three tenths of a second to use.
 
 **Words:** `learn` · `teach` — `loss` · `error` · `misfit` — `train` ·
 `backward` · `backprop` — `gradient` · `gradients` · `slope` — `descend` —

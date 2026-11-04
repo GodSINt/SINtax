@@ -1,5 +1,46 @@
-# compiled output
-sin/sin
-*.db
+# Nothing is pushed unless it is named below.
+#
+# The first line ignores everything; each `!` puts one thing back. A file that
+# is not in this list cannot reach the repo by accident -- which makes this a
+# manifest as much as a filter: it is the answer to "what does someone get when
+# they clone this".
+#
+# Adding something is a line here. That is the cost of the arrangement, and the
+# point of it: `git status` stays quiet until a file is meant to ship, and a
+# stray download, a database, a compiled binary or a source file cannot end up
+# on the other side of it by being nearby.
+#
+# Order matters. A folder is let back in first, then what lives inside it.
+# `git check-ignore -v <path>` says which line decided any file.
 
-.DS_Store
+*
+
+# --- the front page and the paper trail ---
+!.gitignore
+!README.md
+!COMMANDS.md
+!LICENSE.MD
+
+# --- the compiler ---
+!bin/
+!bin/sintax
+
+# --- the example program ---
+!sin/
+!sin/sin.stx
+!sin/invite.txt
+
+# --- every image it names, one line each ---
+!sin/guest_bg.jpg
+!sin/guest_header.jpg
+!sin/login_good.jpg
+!sin/reg_fail.jpg
+!sin/reg_success.jpg
+!sin/secret_door.jpg
+!sin/user_exists.jpeg
+!sin/wrong_pass.jpg
+!sin/icon.png
+
+# Not listed above, and so not shipped: sin/sin (what compiling sin.stx makes),
+# sss.db (what running it makes), .DS_Store, and anything else that turns up in
+# this folder. To carry a new asset, add its line and it appears in git status.
