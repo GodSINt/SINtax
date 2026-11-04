@@ -25,6 +25,7 @@ bin/sintax      the compiler (macOS, Apple Silicon)
 sin/sin.stx     the SIN Nation example program — registration, login, the invitation
 sin/            every image and text file sin.stx expects, beside it
 COMMANDS.md     the command reference: every statement and every synonym it answers to
+CHANGELOG.md    what each build of the compiler changed
 LICENSE.MD      the SIN Nation License (v1.1)
 ```
 
