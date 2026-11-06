@@ -8,7 +8,44 @@ have, that build predates it.
 
 ---
 
-## 4 November 2026 — current
+## 5 November 2026 — current
+
+### The compiler
+
+- **A list can be said in a sentence.** Every place a sentence is built -- `print`,
+  `set`, element text, a window's attributes, a file being written -- handed a
+  list straight to `%s`, so `print "kinds: {kinds}"` printed four bytes of
+  memory address instead of the list, and `{list[0]}` inside text failed to
+  compile at all. A list now reads as its items, one after another:
+
+  ```
+  print "kinds: {kinds}"          kinds: declarative, interrogative
+  print "first is {kinds}[0]"     first is declarative
+  print "there are {kinds.length}" there are 2
+  ```
+
+  Both index spellings read the item -- `{list}[0]` and `{list[0]}` -- and a
+  list on its own line still prints one item per line.
+- **`if len{list} > 1` asks how much.** A size inside a test compared a list
+  struct against a number and did not compile, so the one check a sliced result
+  needs -- was there more than one? -- could not be written. `len`, `length`,
+  `size` and `count` now answer it: a list's items, a text's characters, or a
+  number passed through untouched. `if len{x}` alone means "not empty".
+
+### The example
+
+- `sin/sin.stx` no longer declares a `masterkey` field on the `sinner` object.
+  The salt and the handshake stay in the table where the login needs them; the
+  object carries identity only.
+
+### The reference
+
+- `COMMANDS.md` documents the three ways to read a list and the size test under
+  *If, else*, with the sentence-slicing check written out in full.
+
+---
+
+## 4 November 2026
 
 ### The compiler
 

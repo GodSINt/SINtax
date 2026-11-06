@@ -195,6 +195,20 @@ if {n} > 4
 if {flag}
 ```
 
+**How many** — `len`, `length`, `size` and `count` in front of a name ask how
+much is in it, in the test itself, so a count needs no line of its own. It
+counts a list's items, a text's characters, or stands for a number:
+
+```
+if len{kinds} > 1
+    print "more than one kind of sentence"
+end if
+if length{doc} > 80            # characters in the text
+if count{words} = 0
+```
+
+`if len{kinds}` on its own is true when the list is not empty.
+
 **Words:** `if` · `when` for the test; `else` · `otherwise` for the branch.
 
 Closing with `end` alone also works, but `end if` is the one to use inside
@@ -523,6 +537,24 @@ end for
 
 **Words:** `list` · `array` · `collection`
 
+A list is read three ways. On its own it prints one item to a line; inside a
+sentence it reads as its items, separated by commas, so a sentence can say
+what it found; by number it gives one thing.
+
+```
+create list (colors) "red | green | blue"
+print {colors}                # red, then green, then blue -- one to a line
+print "colours: {colors}"     # colours: red, green, blue
+print "first is {colors}[0]"  # first is red
+print "last is {colors[2]}"   # last is blue -- the number reads inside too
+print "there are {colors.length}"   # there are 3
+```
+
+`{list}` inside a sentence reads the whole list; `{list.length}` reads how
+many it holds as a number. A list made by `slice` answers the same way, which
+is how a thought window can say *heard declarative, interrogative in 3
+sentences* without a loop.
+
 **Input** — a place for a typed line:
 
 ```
@@ -594,6 +626,22 @@ sentences, 12 items as words (10 words and 2 full stops), 39 characters,
 > not recognise means **lines**, so `slice {doc} (x)` and `slice sense {doc}
 > (x)` both give lines. Tags and triples assume English word order and lean
 > on `lexicon.txt`; a word it has never seen comes back tagged `?`.
+
+> Questions are read as well as statements. A question word is either the
+> subject — `who wrote this` gives `(who, wrote, this)` — or the hinge of an
+> inversion, where the verb arrives first: `how are you` gives `(you, are, )`,
+> `can you help me` gives `(you, help, me)`, `is the door open` gives
+> `(the door, is, open)`. A third field that is empty means the sentence had
+> no object. A sentence with no verb in it — `hello my friend` — gives no
+> triple at all, so a list shorter than you expected means a sentence without
+> a verb, not a failure.
+
+```
+slice svo {prompt} into (triples)
+for (t) in {triples}
+    print {t}
+end for
+```
 
 **Words:** `slice` · `split` · `chunk`
 
